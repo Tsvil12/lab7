@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lab 7 </title>
+    <title>Lab 7</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
@@ -361,7 +361,7 @@
                 <p><strong>Имя:</strong> Цвиль Павел</p>
                 <p><strong>Группа:</strong> ФИТ-231</p>
                 <p><strong>Факт 1:</strong> Мечта - закончить КемГУ</p>
-                <p><strong>Факт 2:</strong> Бесктоечное уважение тем, кто помогает мне осуществить мечту</p>
+                <p><strong>Факт 2:</strong> Бесконечное уважение тем, кто помогает мне осуществить мечту</p>
             </div>
             
             <div class="meme-section">
@@ -392,30 +392,24 @@
                 // ЗАГРУЗКА ИЗ LOCALSTORAGE 
                 const saved = localStorage.getItem('todos-lab7')
                 if (saved) {
-                    // Если есть сохраненные данные - загружаем их
                     todos.value = JSON.parse(saved)
                 } else {
-                    // Если нет - создаем начальные задачи
                     todos.value = [
                         { id: 1, title: "test", completed: true },
                         { id: 2, title: "123", completed: false },
                         { id: 3, title: "321", completed: false },
                     ]
-                    // Сразу сохраняем в localStorage
                     localStorage.setItem('todos-lab7', JSON.stringify(todos.value))
                 }
 
-                // Сохранение в localStorage при изменениях
                 const saveTodos = () => {
                     localStorage.setItem('todos-lab7', JSON.stringify(todos.value))
                 }
 
-                // Навигация
                 const goTo = (page) => {
                     currentPage.value = page
                 }
 
-                // Фильтрация задач по поиску
                 const filteredTodos = computed(() => {
                     if (!searchQuery.value) return todos.value
                     return todos.value.filter(t => 
@@ -423,7 +417,6 @@
                     )
                 })
 
-                // Статистика для About
                 const completedCount = computed(() => 
                     todos.value.filter(t => t.completed).length
                 )
@@ -436,16 +429,15 @@
                     Math.round((completedCount.value / (todos.value.length || 1)) * 100)
                 )
 
-                // Методы для работы с задачами
                 const addTodo = () => {
                     if (newTodo.value.trim()) {
                         todos.value.push({
-                            id: Date.now(), // Уникальный ID на основе времени
+                            id: Date.now(),
                             title: newTodo.value,
                             completed: false
                         })
-                        newTodo.value = '' // Очищаем поле
-                        saveTodos() // Сохраняем
+                        newTodo.value = ''
+                        saveTodos()
                     }
                 }
 
