@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 7 - To-Do с роутингом</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        #app {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Навигация */
+        nav {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        nav button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            background: #f0f0f0;
+            transition: all 0.3s;
+        }
+
+        nav button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Страницы */
+        .page {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Страница задач */
+        .todo-page {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .add-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .add-box input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .add-box button {
+            padding: 12px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .todo-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .todo-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .todo-item.completed span {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .todo-item span {
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #ff4757;
+            font-size: 1.2rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        /* Страница About */
+        .about-page {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .author-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .author-section h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .meme-section {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .meme-section p {
+            margin: 5px 0;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Навигация -->
+        <nav>
+            <button @click="goTo('todo')" :class="{ active: currentPage === 'todo' }">
+                <i class="fas fa-tasks"></i> Задачи
+            </button>
+            <button @click="goTo('about')" :class="{ active: currentPage === 'about' }">
+                <i class="fas fa-info-circle"></i> О сайте
+            </button>
+        </nav>
+
+        <!-- Страница задач -->
+        <div v-if="currentPage === 'todo'" class="page todo-page">
+            <h1>📋 Мои задачи</h1>
+            
+            <!-- Поиск -->
+            <input 
+                v-model="searchQuery" 
+                type="text" 
+                placeholder="🔍 Поиск задач..."
+                class="search-box"
+            >
+            
+            <!-- Добавление -->
+            <div class="add-box">
+                <input 
+                    v-model="newTodo" 
+                    @keyup.enter="addTodo"
+                    type="text" 
+                    placeholder="Новая задача..."
+                >
+                <button @click="addTodo">
+                    <i class="fas fa-plus"></i> Добавить
+                </button>
+            </div>
+            
+            <!-- Список задач -->
+            <div class="todo-list">
+                <div 
+                    v-for="todo in filteredTodos" 
+                    :key="todo.id"
+                    class="todo-item"
+                    :class="{ completed: todo.completed }"
+                >
+                    <input 
+                        type="checkbox" 
+                        :checked="todo.completed"
+                        @change="toggleTodo(todo.id)"
+                    >
+                    <span @dblclick="editTodo(todo)">{{ todo.title }}</span>
+                    <button @click="deleteTodo(todo.id)" class="delete-btn">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Пусто -->
+            <div v-if="todos.length === 0" class="empty-state">
+                <i class="far fa-smile-wink fa-3x"></i>
+                <p>Задач пока нет. Добавьте первую!</p>
+            </div>
+        </div>
+
+        <!-- Страница О приложении -->
+        <div v-if="currentPage === 'about'" class="page about-page">
+            <h1>О сайте</h1>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ todos.length }}</div>
+                    <div>Всего задач</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ completedCount }}</div>
+                    <div>Выполнено</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ activeCount }}</div>
+                    <div>Активных</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ progress }}%</div>
+                    <div>Прогресс</div>
+                </div>
+            </div>
+            
+            <div class="author-section">
+                <h3>Об авторе</h3>
+                <p><strong>Имя:</strong> Цвиль Павел</p>
+                <p><strong>Группа:</strong> ФИТ-231</p>
+                <p><strong>Факт 1:</strong> Цель в жизни - закончить универ</p>
+                <p><strong>Факт 2:</strong> Очень благодарен тем, кто помогает мне осуществить мою цель</p>
+            </div>
+            
+            <div class="meme-section">
+                <h3> ФАКТЫ </h3>
+                <p>— Я работаю барменом</p>
+                <p>— Мечтаю закончить КемГУ</p>
+                <p>— Умоляю, поставьте баллы на зачет. Стою на коленях</p>
+                <p style="margin-top: 15px; font-size: 0.9rem;">Лабораторная работа №7 </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed } = Vue
+
+        createApp({
+            setup() {
+                // Текущая страница
+                const currentPage = ref('todo')
+                
+                // Данные для задач
+                const todos = ref([])
+                const newTodo = ref('')
+                const searchQuery = ref('')
+
+                // Загрузка из localStorage
+                const saved = localStorage.getItem('todos-lab7')
+                if (saved) {
+                    todos.value = JSON.parse(saved)
+                }
+
+                // Сохранение
+                const saveTodos = () => {
+                    localStorage.setItem('todos-lab7', JSON.stringify(todos.value))
+                }
+
+                // Навигация
+                const goTo = (page) => {
+                    currentPage.value = page
+                }
+
+                // Фильтрация
+                const filteredTodos = computed(() => {
+                    if (!searchQuery.value) return todos.value
+                    return todos.value.filter(t => 
+                        t.title.toLowerCase().includes(searchQuery.value.toLowerCase())
+                    )
+                })
+
+                // Статистика
+                const completedCount = computed(() => 
+                    todos.value.filter(t => t.completed).length
+                )
+                
+                const activeCount = computed(() => 
+                    todos.value.filter(t => !t.completed).length
+                )
+                
+                const progress = computed(() => 
+                    Math.round((completedCount.value / (todos.value.length || 1)) * 100)
+                )
+
+                // Методы для задач
+                const addTodo = () => {
+                    if (newTodo.value.trim()) {
+                        todos.value.push({
+                            id: Date.now(),
+                            title: newTodo.value,
+                            completed: false
+                        })
+                        newTodo.value = ''
+                        saveTodos()
+                    }
+                }
+
+                const toggleTodo = (id) => {
+                    const todo = todos.value.find(t => t.id === id)
+                    if (todo) {
+                        todo.completed = !todo.completed
+                        saveTodos()
+                    }
+                }
+
+                const deleteTodo = (id) => {
+                    if (confirm('Удалить задачу?')) {
+                        todos.value = todos.value.filter(t => t.id !== id)
+                        saveTodos()
+                    }
+                }
+
+                const editTodo = (todo) => {
+                    const newTitle = prompt('Редактировать задачу:', todo.title)
+                    if (newTitle && newTitle.trim()) {
+                        todo.title = newTitle
+                        saveTodos()
+                    }
+                }
+
+                return {
+                    currentPage,
+                    todos,
+                    newTodo,
+                    searchQuery,
+                    filteredTodos,
+                    completedCount,
+                    activeCount,
+                    progress,
+                    goTo,
+                    addTodo,
+                    toggleTodo,
+                    deleteTodo,
+                    editTodo
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
