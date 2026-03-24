@@ -25,7 +25,6 @@
             margin: 0 auto;
         }
 
-        /* Навигация */
         nav {
             background: white;
             padding: 1rem;
@@ -57,7 +56,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
-        /* Анимация страниц */
         .page {
             animation: fadeIn 0.3s ease;
         }
@@ -73,7 +71,6 @@
             }
         }
 
-        /* Страница задач */
         .todo-page {
             background: white;
             padding: 2rem;
@@ -194,7 +191,6 @@
             color: #999;
         }
 
-        /* Страница About */
         .about-page {
             background: white;
             padding: 2rem;
@@ -271,7 +267,6 @@
 </head>
 <body>
     <div id="app">
-        <!-- Навигация -->
         <nav>
             <button @click="goTo('todo')" :class="{ active: currentPage === 'todo' }">
                 <i class="fas fa-tasks"></i> Задачи
@@ -281,11 +276,9 @@
             </button>
         </nav>
 
-        <!-- Страница задач -->
         <div v-if="currentPage === 'todo'" class="page todo-page">
             <h1> Мои задачи</h1>
             
-            <!-- Поиск -->
             <input 
                 v-model="searchQuery" 
                 type="text" 
@@ -293,7 +286,6 @@
                 class="search-box"
             >
             
-            <!-- Добавление -->
             <div class="add-box">
                 <input 
                     v-model="newTodo" 
@@ -306,7 +298,6 @@
                 </button>
             </div>
             
-            <!-- Список задач -->
             <div class="todo-list">
                 <div 
                     v-for="todo in filteredTodos" 
@@ -326,14 +317,12 @@
                 </div>
             </div>
             
-            <!-- Пусто -->
             <div v-if="todos.length === 0" class="empty-state">
                 <i class="far fa-smile-wink fa-3x"></i>
                 <p>Задач пока нет. Добавьте первую!</p>
             </div>
         </div>
 
-        <!-- Страница О приложении -->
         <div v-if="currentPage === 'about'" class="page about-page">
             <h1>О сайте</h1>
             
@@ -381,15 +370,12 @@
 
         createApp({
             setup() {
-                // Текущая страница
                 const currentPage = ref('todo')
                 
-                // Данные для задач
                 const todos = ref([])
                 const newTodo = ref('')
                 const searchQuery = ref('')
 
-                // ЗАГРУЗКА ИЗ LOCALSTORAGE 
                 const saved = localStorage.getItem('todos-lab7')
                 if (saved) {
                     todos.value = JSON.parse(saved)
